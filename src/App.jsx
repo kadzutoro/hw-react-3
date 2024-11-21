@@ -1,29 +1,38 @@
-import { useState } from 'react'
-import './App.css'
-import { UserForm }from './components/UserForm/UserForm.jsx'
-import { TextImput } from './components/TextInput/TextInput.jsx'
-import { LangSwitcher } from './components/LangSwitcher/LangSwitcher.jsx'
+import { useEffect, useState } from 'react';
+import './App.css';
+import { ContactForm } from './components/ContactForm/ContactForm';
+import { SearchBox } from './components/SearchBox/SearchBox';
+import { ContactList } from './components/ContactList/ContactList';
 
 export const App = () => {
-  const [text, setText] = useState('qwerty');
-  const [lang, setLang] = useState('en');
-  const [user, setUser] = useState(null);
-
-  const saveUser = (user) => {
-    setUser(user);
+  const [contacts, setContacts] = useState(
+      () => JSON.parse(localStorage.getItem('saved-contacts')) ?? []
+    );
+  const [filter, setFilter] = useState('');
+  const addContact = (newContact) => {
+      setContacts((prevContacts) => {
+          return [...prevContacts, newContact]
+      })
   }
+
+  useEffect(() => {
+      localStorage.setItem('saved-contacts', JSON.stringify(contacts));
+    }, [contacts]);
+
+  const deleteContact = (contactId) => {
+      setContacts(prevContacts => {
+          return prevContacts.filter(contact => contact.id !== contactId)
+      })
+  }
+  const visibleContacts = contacts.filter(contact => 
+      contact.name.toLowerCase().includes(filter.toLowerCase()))
+  
   return (
-   <div>
-    {user && <div>
-      <p>{user.username}</p>
-      <p>{user.role}</p>
-    </div> }
-    <UserForm onSubmit = {saveUser}/>
-    <TextImput value={text} onChange = {setText}/>
-    <p>{text}</p>
-    <LangSwitcher lang={lang} onChange ={setLang}/>
-    <p>Current lang: {lang}</p>
-   </div>
+<div>
+  <h1>Phonebook</h1>
+  <ContactForm onAdd={addContact} />
+  <SearchBox value={filter} onFilter={setFilter} />
+  <ContactList contacts={visibleContacts} onDelete={deleteContact} />
+</div>
   )
 }
-
